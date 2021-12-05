@@ -3,6 +3,7 @@ package util
 import (
 	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 	neturl "net/url"
 	"os"
@@ -20,7 +21,8 @@ func init() {
 
 	bts, err := ioutil.ReadFile(filepath.Join(d, "cookie.txt"))
 	if err != nil {
-		panic(err)
+		log.Default().SetOutput(os.Stderr)
+		log.Printf("could not read session cookie %v", err)
 	}
 	sessionCookie = string(bts)
 }
