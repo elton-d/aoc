@@ -20,10 +20,7 @@ var testInput = strings.Split(`00100
 
 func TestCalcO2(t *testing.T) {
 	want := 23
-	got, err := calcO2Rating(testInput)
-	if err != nil {
-		t.Error(err)
-	}
+	got := calcO2Rating(testInput)
 	if got != want {
 		t.Errorf("Unexpected O2 rating, got: %v, want: %v", got, want)
 	}
@@ -31,10 +28,7 @@ func TestCalcO2(t *testing.T) {
 
 func TestCalcCO2(t *testing.T) {
 	want := 10
-	got, err := calcCO2Rating(testInput)
-	if err != nil {
-		t.Error(err)
-	}
+	got := calcCO2Rating(testInput)
 	if got != want {
 		t.Errorf("Unexpected CO2 rating, got: %v, want: %v", got, want)
 	}

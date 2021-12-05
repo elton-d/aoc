@@ -60,7 +60,7 @@ func (f *FrequencyTable) LessFrequent(pos int) int {
 	return 1
 }
 
-func calcO2Rating(in []string) (int, error) {
+func calcO2Rating(in []string) int {
 	freq := newFrequencyTable(in)
 	candidates := in[:]
 	var newCandidates []string
@@ -85,7 +85,7 @@ func calcO2Rating(in []string) (int, error) {
 
 }
 
-func calcCO2Rating(in []string) (int, error) {
+func calcCO2Rating(in []string) int {
 	freq := newFrequencyTable(in)
 	candidates := in[:]
 	var newCandidates []string
@@ -113,13 +113,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	o2, err := calcO2Rating(in)
-	if err != nil {
-		panic(err)
-	}
-	co2, err := calcCO2Rating(in)
-	if err != nil {
-		panic(err)
-	}
+	o2 := calcO2Rating(in)
+
+	co2 := calcCO2Rating(in)
+
 	fmt.Println(o2 * co2)
 }
