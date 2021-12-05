@@ -69,30 +69,31 @@ func evaluateLine(space [][]int, l *LineSegment) [][]int {
 	return space
 }
 
-func evaluateLine1(space [][]int, l *LineSegment) [][]int {
-	if l.x1 == l.x2 {
-		if l.y2 < l.y1 {
-			for i := l.y2; i <= l.y1; i++ {
-				space[l.x1][i] += 1
-			}
-		} else {
-			for i := l.y1; i <= l.y2; i++ {
-				space[l.x1][i] += 1
-			}
-		}
-	} else if l.y1 == l.y2 {
-		if l.x2 < l.x1 {
-			for i := l.x2; i <= l.x1; i++ {
-				space[i][l.y1] += 1
-			}
-		} else {
-			for i := l.x1; i <= l.x2; i++ {
-				space[i][l.y1] += 1
-			}
-		}
-	}
-	return space
-}
+// part 1 solution
+// func evaluateLine(space [][]int, l *LineSegment) [][]int {
+// 	if l.x1 == l.x2 {
+// 		if l.y2 < l.y1 {
+// 			for i := l.y2; i <= l.y1; i++ {
+// 				space[l.x1][i] += 1
+// 			}
+// 		} else {
+// 			for i := l.y1; i <= l.y2; i++ {
+// 				space[l.x1][i] += 1
+// 			}
+// 		}
+// 	} else if l.y1 == l.y2 {
+// 		if l.x2 < l.x1 {
+// 			for i := l.x2; i <= l.x1; i++ {
+// 				space[i][l.y1] += 1
+// 			}
+// 		} else {
+// 			for i := l.x1; i <= l.x2; i++ {
+// 				space[i][l.y1] += 1
+// 			}
+// 		}
+// 	}
+// 	return space
+// }
 
 func processInput() ([]*LineSegment, error) {
 	var lines []*LineSegment
