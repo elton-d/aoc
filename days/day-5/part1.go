@@ -8,92 +8,105 @@ import (
 	"github.com/elton-d/aoc/util"
 )
 
+type Point struct{ X, Y int }
+
 type LineSegment struct {
-	x1, y1, x2, y2 int
+	Pt1, Pt2 *Point
 }
 
-func evaluateLine(space [][]int, l *LineSegment) [][]int {
-	if l.x1 == l.x2 {
-		if l.y2 < l.y1 {
-			for i := l.y2; i <= l.y1; i++ {
-				space[l.x1][i] += 1
-			}
-		} else {
-			for i := l.y1; i <= l.y2; i++ {
-				space[l.x1][i] += 1
-			}
+func (l *LineSegment) Slope() int {
+	return (l.Pt2.Y - l.Pt1.Y) / (l.Pt2.X - l.Pt1.X)
+}
+
+type filterFunc func(l *LineSegment) bool
+type Graph struct {
+	pointToWeight map[Point]int
+	overlaps      int
+	filter        filterFunc
+}
+
+func (g *Graph) increaseWeight(p Point) {
+	if val, ok := g.pointToWeight[p]; ok {
+		if val == 1 {
+			// count it since weight will increase from 1 to 2
+			g.overlaps += 1
 		}
-	} else if l.y1 == l.y2 {
-		if l.x2 < l.x1 {
-			for i := l.x2; i <= l.x1; i++ {
-				space[i][l.y1] += 1
-			}
-		} else {
-			for i := l.x1; i <= l.x2; i++ {
-				space[i][l.y1] += 1
-			}
-		}
-	} else if slope := (l.y2 - l.y1) / (l.x2 - l.x1); slope == 1 || slope == -1 {
-
-		if l.x2 < l.x1 {
-
-			if l.y2 < l.y1 {
-				for x, y := l.x2, l.y2; x <= l.x1; x++ {
-					space[x][y] += 1
-					y += 1
-				}
-			} else {
-				for x, y := l.x2, l.y2; x <= l.x1; x++ {
-					space[x][y] += 1
-					y -= 1
-				}
-			}
-
-		} else {
-
-			if l.y2 < l.y1 {
-				for x, y := l.x1, l.y1; x <= l.x2; x++ {
-					space[x][y] += 1
-					y -= 1
-				}
-			} else {
-				for x, y := l.x1, l.y1; x <= l.x2; x++ {
-					space[x][y] += 1
-					y += 1
-				}
-			}
-
-		}
-
+	} else {
+		g.pointToWeight[p] = 0
 	}
-	return space
+	g.pointToWeight[p] += 1
 }
 
-// part 1 solution
-// func evaluateLine(space [][]int, l *LineSegment) [][]int {
-// 	if l.x1 == l.x2 {
-// 		if l.y2 < l.y1 {
-// 			for i := l.y2; i <= l.y1; i++ {
-// 				space[l.x1][i] += 1
-// 			}
-// 		} else {
-// 			for i := l.y1; i <= l.y2; i++ {
-// 				space[l.x1][i] += 1
-// 			}
-// 		}
-// 	} else if l.y1 == l.y2 {
-// 		if l.x2 < l.x1 {
-// 			for i := l.x2; i <= l.x1; i++ {
-// 				space[i][l.y1] += 1
-// 			}
-// 		} else {
-// 			for i := l.x1; i <= l.x2; i++ {
-// 				space[i][l.y1] += 1
-// 			}
-// 		}
-// 	}
-// 	return space
-// }
+func newGraph(f filterFunc) *Graph {
+	return &Graph{
+		filter:        f,
+		pointToWeight: make(map[Point]int),
+	}
+}
+
+func (g *Graph) DrawLineSegs(lineSegs []*LineSegment) {
+	for _, l := range lineSegs {
+		g.Plot(l)
+	}
+}
+
+func (g *Graph) Plot(l *LineSegment) {
+	if g.filter(l) {
+		x1, y1, x2, y2 := l.Pt1.X, l.Pt1.Y, l.Pt2.X, l.Pt2.Y
+		if x2 != x1 {
+			var left, right *Point
+			m := l.Slope()
+			c := y2 - m*x2
+			if x1 < x2 {
+				left = l.Pt1
+				right = l.Pt2
+			} else {
+				left = l.Pt2
+				right = l.Pt1
+			}
+
+			for x := left.X; x <= right.X; x++ {
+				g.increaseWeight(Point{X: x, Y: m*x + c})
+			}
+
+		} else {
+			var bottom, top *Point
+			if y1 < y2 {
+				bottom = l.Pt1
+				top = l.Pt2
+			} else {
+				bottom = l.Pt2
+				top = l.Pt1
+			}
+
+			for y := bottom.Y; y <= top.Y; y++ {
+				g.increaseWeight(Point{X: x1, Y: y})
+			}
+		}
+	}
+}
+
+func newLineFromStr(s string) (*LineSegment, error) {
+	coords := strings.Split(s, " -> ")
+	pointsInt := []int{}
+
+	pointsStr := []string{}
+	for _, lineStr := range coords {
+		pointsStr = append(pointsStr, strings.Split(lineStr, ",")...)
+	}
+	for _, p := range pointsStr {
+		i, err := strconv.Atoi(p)
+		if err != nil {
+			return nil, err
+		}
+		pointsInt = append(pointsInt, i)
+	}
+	var pt1, pt2 Point
+
+	pt1.X, pt1.Y, pt2.X, pt2.Y = pointsInt[0], pointsInt[1], pointsInt[2], pointsInt[3]
+	return &LineSegment{Pt1: &pt1, Pt2: &pt2}, nil
+
+}
 
 func processInput() ([]*LineSegment, error) {
 	var lines []*LineSegment
@@ -103,61 +116,39 @@ func processInput() ([]*LineSegment, error) {
 	}
 	inputStr := string(b)
 	for _, line := range strings.Split(strings.TrimSpace(inputStr), "\n") {
-		l := &LineSegment{}
-		linesStr := strings.Split(line, " -> ")
-		pointsInt := []int{}
-
-		pointsStr := []string{}
-		for _, lineStr := range linesStr {
-			pointsStr = append(pointsStr, strings.Split(lineStr, ",")...)
+		l, err := newLineFromStr(line)
+		if err != nil {
+			return nil, err
 		}
-
-		for _, p := range pointsStr {
-			i, err := strconv.Atoi(p)
-			if err != nil {
-				return nil, err
-			}
-			pointsInt = append(pointsInt, i)
-		}
-
-		l.x1, l.y1, l.x2, l.y2 = pointsInt[0], pointsInt[1], pointsInt[2], pointsInt[3]
 		lines = append(lines, l)
-
 	}
 	return lines, nil
 
 }
 
-func overlapsCount(space [][]int) int {
-	overlaps := 0
-	for _, line := range space {
-		for _, count := range line {
-			if count > 1 {
-				overlaps += 1
-			}
-		}
-	}
-	return overlaps
-}
-
-func evaluateLines(space [][]int, lines []*LineSegment) [][]int {
-	for _, l := range lines {
-		space = evaluateLine(space, l)
-	}
-	return space
-}
-
 func main() {
-	space := make([][]int, 1000)
-	for i := range space {
-		space[i] = make([]int, 1000)
-	}
-
-	lines, err := processInput()
+	lineSegs, err := processInput()
 	if err != nil {
 		panic(err)
 	}
 
-	space = evaluateLines(space, lines)
-	fmt.Print(overlapsCount(space))
+	part1Filter := func(l *LineSegment) bool {
+		return l.Pt1.X == l.Pt2.X || l.Pt1.Y == l.Pt2.Y
+	}
+
+	g := newGraph(part1Filter)
+	g.DrawLineSegs(lineSegs)
+	fmt.Println(g.overlaps)
+
+	part2Filter := func(l *LineSegment) bool {
+		if l.Pt1.X == l.Pt2.X {
+			return true
+		}
+		m := l.Slope()
+
+		return m == 0 || m == 1 || m == -1
+	}
+	g = newGraph(part2Filter)
+	g.DrawLineSegs(lineSegs)
+	fmt.Println(g.overlaps)
 }
