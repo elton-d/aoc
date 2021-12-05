@@ -74,7 +74,7 @@ func (b *BingoCard) Print() {
 }
 
 type BingoGame struct {
-	cards []*BingoCard
+	cards map[int]*BingoCard
 	draws []int
 }
 
@@ -92,18 +92,15 @@ func (g *BingoGame) PlayToWin() int {
 }
 
 func (g *BingoGame) PlayToLose() int {
-	var boardsCompleted int
-
 	for _, num := range g.draws {
-		for _, c := range g.cards {
+		for i, c := range g.cards {
 			if c.Check(num) {
-				boardsCompleted += 1
-				if len(g.cards) == boardsCompleted {
+				delete(g.cards, i)
+				if len(g.cards) == 0 {
 					c.Print()
 					fmt.Printf("Wins on %d, board score: %d \n", num, c.Score())
 					return num * c.Score()
 				}
-
 			}
 		}
 	}
@@ -147,13 +144,13 @@ func newBingoGame() (*BingoGame, error) {
 		draws = append(draws, num)
 	}
 
-	var cards []*BingoCard
-	for _, boardStr := range strings.Split(splits[1], "\n\n") {
+	cards := make(map[int]*BingoCard)
+	for i, boardStr := range strings.Split(splits[1], "\n\n") {
 		card, err := newBingoCard(boardStr)
 		if err != nil {
 			return nil, err
 		}
-		cards = append(cards, card)
+		cards[i] = card
 	}
 	return &BingoGame{
 		cards: cards,
