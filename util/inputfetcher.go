@@ -13,13 +13,14 @@ import (
 
 var (
 	sessionCookie = ""
+	utilsDir      = ""
 )
 
 func init() {
 	_, b, _, _ := runtime.Caller(0)
-	d := filepath.Join(filepath.Dir(b))
+	utilsDir = filepath.Join(filepath.Dir(b))
 
-	bts, err := ioutil.ReadFile(filepath.Join(d, "cookie.txt"))
+	bts, err := ioutil.ReadFile(filepath.Join(utilsDir, "cookie.txt"))
 	if err != nil {
 		log.Default().SetOutput(os.Stderr)
 		log.Printf("could not read session cookie %v", err)
@@ -33,7 +34,7 @@ func GetInput(url string) ([]byte, error) {
 		return nil, err
 	}
 
-	path := filepath.Join("testdata", u.Path)
+	path := filepath.Join(filepath.Dir(utilsDir), "testdata", u.Path)
 	if _, err := os.Stat(path); err != nil {
 		if errors.Is(err, os.ErrNotExist) {
 			if err := os.MkdirAll(filepath.Dir(path), os.ModePerm); err != nil {
