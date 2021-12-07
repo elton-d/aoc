@@ -68,50 +68,33 @@ func getInput() ([]int, error) {
 	return nums, nil
 }
 
+func mean(nums []int) int {
+	sum := 0
+
+	for _, i := range nums {
+		sum += i
+	}
+	return sum / len(nums)
+}
+
 func summation(n int) int {
 	return (n * (n + 1)) / 2
 }
 
 func getFuelUsedForBestPos2(pos []int) int {
+	alignIdx := mean(pos)
 
-	bestFuel := math.MaxInt
-
-	counts := make(map[int]int)
-	min := math.MaxInt
-	max := math.MinInt
+	fuel := 0
 
 	for _, i := range pos {
-		_, ok := counts[i]
-		if !ok {
-			counts[i] = 0
-		}
-		counts[i] += 1
-		if i < min {
-			min = i
-		}
-		if i > max {
-			max = i
+		if i < alignIdx {
+			fuel += summation(alignIdx - i)
+		} else {
+			fuel += summation(i - alignIdx)
 		}
 	}
 
-	for i := min; i <= max; i++ {
-		fuel := 0
-		for j, count := range counts {
-			if j < i {
-				fuel += count * summation(i-j)
-			} else {
-				fuel += count * summation(j-i)
-			}
-			if fuel > bestFuel {
-				break
-			}
-		}
-		if fuel < bestFuel {
-			bestFuel = fuel
-		}
-	}
-
-	return bestFuel
+	return fuel
 }
 
 func main() {
