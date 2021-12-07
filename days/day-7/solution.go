@@ -68,13 +68,15 @@ func getInput() ([]int, error) {
 	return nums, nil
 }
 
-func mean(nums []int) int {
+func mean(nums []int) []int {
 	sum := 0
 
 	for _, i := range nums {
 		sum += i
 	}
-	return sum / len(nums)
+	m := float64(sum) / float64(len(nums))
+
+	return []int{int(math.Floor(m)), int(math.Ceil(m))}
 }
 
 func summation(n int) int {
@@ -82,19 +84,26 @@ func summation(n int) int {
 }
 
 func getFuelUsedForBestPos2(pos []int) int {
-	alignIdx := mean(pos)
+	candidates := mean(pos)
+	best := math.MaxInt
 
-	fuel := 0
+	for _, c := range candidates {
+		fuel := 0
 
-	for _, i := range pos {
-		if i < alignIdx {
-			fuel += summation(alignIdx - i)
-		} else {
-			fuel += summation(i - alignIdx)
+		for _, i := range pos {
+			if i < c {
+				fuel += summation(c - i)
+			} else {
+				fuel += summation(i - c)
+			}
+		}
+
+		if fuel < best {
+			best = fuel
 		}
 	}
 
-	return fuel
+	return best
 }
 
 func main() {
