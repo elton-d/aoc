@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 )
 
 var (
@@ -64,4 +65,12 @@ func GetInput(url string) ([]byte, error) {
 	}
 
 	return ioutil.ReadFile(path)
+}
+
+func GetInputStr(url string) string {
+	b, err := GetInput(url)
+	if err != nil {
+		panic(err)
+	}
+	return strings.TrimSpace(string(b))
 }
