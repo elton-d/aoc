@@ -1,8 +1,8 @@
 package main
 
 import (
+	"container/heap"
 	"fmt"
-	"sort"
 	"strings"
 
 	"github.com/elton-d/aoc/util"
@@ -21,13 +21,14 @@ type Coordinate struct {
 	x, y int
 }
 
-type DistPrev struct {
-	dist int
-	prev Coordinate
-	curr Coordinate
+type Node struct {
+	dist  int
+	prev  Coordinate
+	curr  Coordinate
+	index int
 }
 
-func (c *Cavern) PrintPath(sp map[Coordinate]DistPrev) {
+func (c *Cavern) PrintPath(sp map[Coordinate]*Node) {
 	dest := Coordinate{x: len(c.riskLevels[0]) - 1, y: len(c.riskLevels) - 1}
 	curr := sp[dest]
 
@@ -51,61 +52,49 @@ func (c *Cavern) PrintPath(sp map[Coordinate]DistPrev) {
 	}
 }
 
-type byDist []DistPrev
-
-func (s byDist) Len() int {
-	return len(s)
-}
-func (s byDist) Swap(i, j int) {
-	s[i], s[j] = s[j], s[i]
-}
-func (s byDist) Less(i, j int) bool {
-	return s[i].dist < s[j].dist
-}
-
 func (c *Cavern) FindShortestPath() int {
-	shortestPaths := make(map[Coordinate]DistPrev)
+	shortestPaths := make(map[Coordinate]*Node)
 	visited := make([][]bool, len(c.riskLevels))
 	for i := range visited {
 		visited[i] = make([]bool, len(c.riskLevels[i]))
 	}
 	visited[0][0] = true
-	shortestPaths[Coordinate{x: 0, y: 0}] = DistPrev{
+	shortestPaths[Coordinate{x: 0, y: 0}] = &Node{
 		dist: 0,
 		prev: Coordinate{x: -1, y: -1},
 	}
 
-	queue := []DistPrev{}
-	queue = append(queue, DistPrev{curr: Coordinate{x: 0, y: 0}})
+	queue := PriorityQueue{}
+	heap.Push(&queue, &Node{curr: Coordinate{x: 0, y: 0}})
 	enqueued := make(map[Coordinate]bool)
 	for len(queue) > 0 {
-		sort.Sort(byDist(queue))
-		curr := queue[0]
-		queue = queue[1:]
+		curr := heap.Pop(&queue).(*Node)
 		delete(enqueued, curr.curr)
 		visited[curr.curr.y][curr.curr.x] = true
 		for _, n := range c.getNeighbors(curr.curr) {
-
+			idx := len(queue)
 			if !visited[n.y][n.x] {
 				_, ok := enqueued[n]
 				dist := shortestPaths[curr.curr].dist + c.RiskAt(n.x, n.y)
-				val := DistPrev{
-					curr: n,
-					dist: dist,
-					prev: curr.curr,
+				val := Node{
+					curr:  n,
+					dist:  dist,
+					prev:  curr.curr,
+					index: idx,
 				}
 				if !ok {
-					queue = append(queue, val)
+					heap.Push(&queue, &val)
 					enqueued[n] = true
 				}
 
 				_, ok = shortestPaths[n]
 				if !ok {
-					shortestPaths[n] = val
+					shortestPaths[n] = &val
 				}
 
 				if dist < shortestPaths[n].dist {
-					shortestPaths[n] = val
+					shortestPaths[n] = &val
+					queue.update(shortestPaths[n], curr.curr, dist)
 				}
 			}
 		}
@@ -116,10 +105,6 @@ func (c *Cavern) FindShortestPath() int {
 
 func (c *Cavern) RiskAt(x, y int) int {
 	return c.riskLevels[y][x]
-}
-
-func (c *Cavern) IsDest(pos Coordinate) bool {
-	return pos.x == len(c.riskLevels)-1 && pos.y == len(c.riskLevels[pos.x])-1
 }
 
 func NewCavernFromStr(s string) *Cavern {
