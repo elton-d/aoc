@@ -68,7 +68,6 @@ type GameState struct {
 	playerPos    string
 	playerScores string
 	diceVal      int
-	diceRolls    int
 	currRollSum  int
 	turn         int
 }
