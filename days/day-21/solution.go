@@ -149,7 +149,6 @@ func (g *Game) State() GameState {
 		playerScores: strings.Join(scores, ","),
 		diceVal:      g.Dice.LastValue(),
 		currRollSum:  g.CurrRollSum,
-		diceRolls:    g.Dice.RollCount(),
 		turn:         g.Turn,
 	}
 }

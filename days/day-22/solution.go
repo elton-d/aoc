@@ -4,20 +4,13 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/elton-d/aoc/util"
 )
 
 type Cube struct {
 	X, Y, Z int
-	// On      bool
 }
-
-// func (c *Cube) SwitchOn() {
-// 	c.On = true
-// }
-
-// func (c *Cube) SwitchOff() {
-// 	c.On = false
-// }
 
 func Less(a, b Cube) bool {
 	return a.X < b.X && a.Y < b.Y && a.Z < b.Z
@@ -29,15 +22,29 @@ type Reactor struct {
 }
 
 func (r *Reactor) RunSteps() {
-	for _, step := range r.Steps {
-		cubes := r.getCubesInCuboid(step.cuboid)
+	additions := []Cuboid{}
+	deletions := []Cuboid{}
+	volume := 0
 
-		for _, cube := range cubes {
-			if step.state == OnState {
-				r.Cubes[cube] = true
-			} else {
-				delete(r.Cubes, cube)
+	for _, step := range r.Steps {
+		if step.state == OnState {
+			for _, a := range additions {
+				intersection := step.cuboid.Intersection(&a)
+				for _, d := range deletions {
+					di := intersection.Intersection(&d)
+					additions = append(additions, di)
+					volume += di.Volume()
+				}
+				deletions = append(deletions, intersection)
+				volume -= intersection.Volume()
 			}
+			volume += step.cuboid.Volume()
+			additions = append(additions, *step.cuboid)
+		} else {
+
+			// for _, d := range deletions {
+			// 	di :=
+			// }
 		}
 	}
 }
@@ -61,6 +68,58 @@ type RebootStep struct {
 
 type Cuboid struct {
 	xmin, xmax, ymin, ymax, zmin, zmax int
+	NegativeVolumes                    []*Cuboid
+}
+
+func (cb *Cuboid) Volume() int {
+	return (cb.xmax - cb.xmin) * (cb.ymax - cb.ymin) * (cb.zmax - cb.zmin)
+}
+
+func (cb *Cuboid) Overlapswith(other *Cuboid) bool {
+	var left, right, top, bottom, front, back *Cuboid
+
+	if cb.xmax < other.xmax {
+		left = cb
+		right = other
+	} else {
+		left = other
+		right = cb
+	}
+
+	if left.xmax < right.xmin {
+		return false
+	}
+
+	if cb.ymax < other.ymax {
+		top = other
+		bottom = cb
+	} else {
+		top = cb
+		bottom = other
+	}
+
+	if bottom.ymax < top.ymin {
+		return false
+	}
+
+	if cb.zmax < other.zmax {
+		back = cb
+		front = other
+	} else {
+		back = other
+		front = cb
+	}
+	if front.zmin < back.zmax {
+		return false
+	}
+	return true
+}
+
+func (cb *Cuboid) Intersection(other *Cuboid) Cuboid {
+	if cb.Overlapswith(other) {
+
+	}
+	return Cuboid{}
 }
 
 type State string
@@ -140,6 +199,12 @@ on x=-45..7,y=-12..41,z=-19..35`
 	return r.SwitchedOnCubes()
 }
 
+func Part2(input string) int {
+	r := NewReactor(input)
+	r.RunSteps()
+	return r.SwitchedOnCubes()
+}
+
 func (r *Reactor) getCubesInCuboid(c *Cuboid) []Cube {
 	xmin, xmax, ymin, ymax, zmin, zmax := c.xmin, c.xmax, c.ymin, c.ymax, c.zmin, c.zmax
 	cubes := []Cube{}
@@ -158,5 +223,7 @@ func (r *Reactor) getCubesInCuboid(c *Cuboid) []Cube {
 }
 
 func main() {
+	input := util.GetInputStr("https://adventofcode.com/2021/day/22/input")
 	fmt.Println(Part1())
+	fmt.Println(Part2(input))
 }
