@@ -20,3 +20,46 @@ func TestHeap(t *testing.T) {
 		}
 	}
 }
+
+func TestPart1(t *testing.T) {
+	want := 24000
+	input := `1000
+2000
+3000
+
+4000
+
+5000
+6000
+
+7000
+8000
+9000
+
+10000`
+	if got := getMaxCals(input); got != want {
+		t.Errorf("unexpected answer for part 1, got: %d, want: %d", got, want)
+	}
+
+}
+
+func TestPart2(t *testing.T) {
+	want := 45000
+	input := `1000
+2000
+3000
+
+4000
+
+5000
+6000
+
+7000
+8000
+9000
+
+10000`
+	if got := getTopThreeCals(input); got != want {
+		t.Errorf("unexpected answer for part 1, got: %d, want: %d", got, want)
+	}
+}
