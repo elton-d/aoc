@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -22,29 +23,16 @@ type Reactor struct {
 }
 
 func (r *Reactor) RunSteps() {
-	additions := []Cuboid{}
-	deletions := []Cuboid{}
-	volume := 0
+	for i, step := range r.Steps {
+		fmt.Printf("Processing step %d\n", i+1)
+		cubes := r.getCubesInCuboid(step.cuboid)
 
-	for _, step := range r.Steps {
-		if step.state == OnState {
-			for _, a := range additions {
-				intersection := step.cuboid.Intersection(&a)
-				for _, d := range deletions {
-					di := intersection.Intersection(&d)
-					additions = append(additions, di)
-					volume += di.Volume()
-				}
-				deletions = append(deletions, intersection)
-				volume -= intersection.Volume()
+		for _, cube := range cubes {
+			if step.state == OnState {
+				r.Cubes[cube] = true
+			} else {
+				delete(r.Cubes, cube)
 			}
-			volume += step.cuboid.Volume()
-			additions = append(additions, *step.cuboid)
-		} else {
-
-			// for _, d := range deletions {
-			// 	di :=
-			// }
 		}
 	}
 }
@@ -68,58 +56,10 @@ type RebootStep struct {
 
 type Cuboid struct {
 	xmin, xmax, ymin, ymax, zmin, zmax int
-	NegativeVolumes                    []*Cuboid
 }
 
-func (cb *Cuboid) Volume() int {
-	return (cb.xmax - cb.xmin) * (cb.ymax - cb.ymin) * (cb.zmax - cb.zmin)
-}
-
-func (cb *Cuboid) Overlapswith(other *Cuboid) bool {
-	var left, right, top, bottom, front, back *Cuboid
-
-	if cb.xmax < other.xmax {
-		left = cb
-		right = other
-	} else {
-		left = other
-		right = cb
-	}
-
-	if left.xmax < right.xmin {
-		return false
-	}
-
-	if cb.ymax < other.ymax {
-		top = other
-		bottom = cb
-	} else {
-		top = cb
-		bottom = other
-	}
-
-	if bottom.ymax < top.ymin {
-		return false
-	}
-
-	if cb.zmax < other.zmax {
-		back = cb
-		front = other
-	} else {
-		back = other
-		front = cb
-	}
-	if front.zmin < back.zmax {
-		return false
-	}
-	return true
-}
-
-func (cb *Cuboid) Intersection(other *Cuboid) Cuboid {
-	if cb.Overlapswith(other) {
-
-	}
-	return Cuboid{}
+func (c *Cuboid) Volume() float64 {
+	return math.Abs((float64(c.xmax-c.xmin) * float64(c.ymax-c.ymin) * float64(c.zmax-c.zmin)))
 }
 
 type State string
@@ -167,7 +107,9 @@ func RebootStepFromStr(s string) *RebootStep {
 func RebootStepsFromStr(s string) []*RebootStep {
 	steps := []*RebootStep{}
 	for _, line := range strings.Split(s, "\n") {
-		steps = append(steps, RebootStepFromStr(line))
+		if len(line) > 0 {
+			steps = append(steps, RebootStepFromStr(line))
+		}
 	}
 	return steps
 }
@@ -199,8 +141,15 @@ on x=-45..7,y=-12..41,z=-19..35`
 	return r.SwitchedOnCubes()
 }
 
-func Part2(input string) int {
+func Part2() int {
+	var input string
+	if b, err := util.GetInput("https://adventofcode.com/2021/day/22/input"); err != nil {
+		panic(err)
+	} else {
+		input = strings.Trim(string(b), "")
+	}
 	r := NewReactor(input)
+
 	r.RunSteps()
 	return r.SwitchedOnCubes()
 }
@@ -223,7 +172,6 @@ func (r *Reactor) getCubesInCuboid(c *Cuboid) []Cube {
 }
 
 func main() {
-	input := util.GetInputStr("https://adventofcode.com/2021/day/22/input")
 	fmt.Println(Part1())
-	fmt.Println(Part2(input))
+	fmt.Println(Part2())
 }
