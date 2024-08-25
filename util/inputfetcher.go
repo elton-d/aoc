@@ -2,7 +2,8 @@ package util
 
 import (
 	"errors"
-	"io/ioutil"
+	"fmt"
+	"io"
 	"log"
 	"net/http"
 	neturl "net/url"
@@ -21,12 +22,12 @@ func init() {
 	_, b, _, _ := runtime.Caller(0)
 	utilsDir = filepath.Join(filepath.Dir(b))
 
-	bts, err := ioutil.ReadFile(filepath.Join(utilsDir, "cookie.txt"))
+	bts, err := os.ReadFile(filepath.Join(utilsDir, "cookie.txt"))
 	if err != nil {
 		log.Default().SetOutput(os.Stderr)
 		log.Printf("could not read session cookie %v", err)
 	}
-	sessionCookie = string(bts)
+	sessionCookie = strings.TrimSpace(string(bts))
 }
 
 func GetInput(url string) ([]byte, error) {
@@ -46,16 +47,17 @@ func GetInput(url string) ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
+			fmt.Printf("making request: %v", req)
 			res, err := (&http.Client{}).Do(req)
 			if err != nil {
 				return nil, err
 			}
 			defer res.Body.Close()
-			b, err := ioutil.ReadAll(res.Body)
+			b, err := io.ReadAll(res.Body)
 			if err != nil {
 				return nil, err
 			}
-			if err := ioutil.WriteFile(path, b, os.ModePerm); err != nil {
+			if err := os.WriteFile(path, b, os.ModePerm); err != nil {
 				return nil, err
 			}
 
@@ -64,7 +66,7 @@ func GetInput(url string) ([]byte, error) {
 		}
 	}
 
-	return ioutil.ReadFile(path)
+	return os.ReadFile(path)
 }
 
 func GetInputStr(url string) string {
