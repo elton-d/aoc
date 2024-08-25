@@ -1,14 +1,13 @@
 package main
 
 import (
-    "fmt"
+	"fmt"
 
-    "github.com/elton-d/aoc/util"
+	"github.com/elton-d/aoc/util"
 )
 
 func main() {
-    input := util.GetInputStr("https://adventofcode.com/2023/day/8/input")
+	input := util.GetInputStr("https://adventofcode.com/2023/day/8/input")
 
-    fmt.Printf("Input:\n %s", input)
+	fmt.Printf("Input:\n %s", input)
 }
-
