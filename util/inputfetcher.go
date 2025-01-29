@@ -47,10 +47,13 @@ func GetInput(url string) ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
-			fmt.Printf("making request: %v", req)
+			fmt.Printf("making request: %v\n", req)
 			res, err := (&http.Client{}).Do(req)
 			if err != nil {
 				return nil, err
+			}
+			if res.StatusCode < 200 || res.StatusCode >= 300 {
+				return nil, fmt.Errorf("non-OK status code returned: %s", res.Status)
 			}
 			defer res.Body.Close()
 			b, err := io.ReadAll(res.Body)

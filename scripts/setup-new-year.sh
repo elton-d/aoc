@@ -1,6 +1,11 @@
 #!/bin/bash
 
-baseDir="${aoc_year}"
+if [[ -z "$1" ]]; then
+  echo "Usage: $0 <aoc_year>"
+  exit 1
+fi
+
+baseDir="$1"
 
 for i in {01..25};
 do
