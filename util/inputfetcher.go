@@ -22,12 +22,15 @@ func init() {
 	_, b, _, _ := runtime.Caller(0)
 	utilsDir = filepath.Join(filepath.Dir(b))
 
-	bts, err := os.ReadFile(filepath.Join(utilsDir, "cookie.txt"))
-	if err != nil {
-		log.Default().SetOutput(os.Stderr)
-		log.Printf("could not read session cookie %v", err)
+	if os.Getenv("CI") != "true" {
+		bts, err := os.ReadFile(filepath.Join(utilsDir, "cookie.txt"))
+		if err != nil {
+			log.Default().SetOutput(os.Stderr)
+			log.Printf("could not read session cookie %v", err)
+		}
+		sessionCookie = strings.TrimSpace(string(bts))
 	}
-	sessionCookie = strings.TrimSpace(string(bts))
+
 }
 
 func GetInput(url string) ([]byte, error) {
