@@ -22,6 +22,7 @@ func init() {
 	_, b, _, _ := runtime.Caller(0)
 	utilsDir = filepath.Join(filepath.Dir(b))
 
+	// CI is set by GitHub Actions https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#default-environment-variables
 	if os.Getenv("CI") != "true" {
 		bts, err := os.ReadFile(filepath.Join(utilsDir, "cookie.txt"))
 		if err != nil {
