@@ -20,6 +20,12 @@ type movement struct {
 	direction string
 }
 
+type hash struct {
+	row       int
+	col       int
+	direction string
+}
+
 func (m *movement) rotate() {
 	switch {
 	case m.direction == up:
@@ -128,7 +134,7 @@ func part2(grid [][]string) int {
 		for j := range grid[i] {
 			if grid[i][j] == "." {
 				grid[i][j] = "#"
-				if stuck(startRow, startCol, grid, m.copy(), 0) {
+				if stuck(startRow, startCol, grid, m.copy(), make(map[hash]struct{})) {
 					obstructions++
 				}
 				grid[i][j] = "."
@@ -156,11 +162,8 @@ func search(row int, col int, grid [][]string, visited [][]bool, m *movement) {
 	}
 }
 
-func stuck(row int, col int, grid [][]string, m *movement, count int) bool {
-	count++
-	if count > len(grid)*len(grid[0]) {
-		return true
-	}
+func stuck(row int, col int, grid [][]string, m *movement, visited map[hash]struct{}) bool {
+
 	if row < 0 || row >= len(grid) || col < 0 || col >= len(grid[0]) {
 		return false
 	}
@@ -168,12 +171,17 @@ func stuck(row int, col int, grid [][]string, m *movement, count int) bool {
 	switch grid[row][col] {
 	case ".", up, down, left, right:
 		nextRow, nextCol := m.forward(row, col)
-		return stuck(nextRow, nextCol, grid, m, count)
+		return stuck(nextRow, nextCol, grid, m, visited)
 	case "#":
+		h := hash{row: row, col: col, direction: m.direction}
+		if _, ok := visited[h]; ok {
+			return true
+		}
+		visited[h] = struct{}{}
 		prevRow, prevCol := m.backward(row, col)
 		m.rotate()
 		nextRow, nextCol := m.forward(prevRow, prevCol)
-		return stuck(nextRow, nextCol, grid, m, count)
+		return stuck(nextRow, nextCol, grid, m, visited)
 	}
 	// should never reach here
 	return false
