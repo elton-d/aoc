@@ -61,6 +61,9 @@ func parseInput(input string) ([]*equation, error) {
 }
 
 func checkRec(eq *equation, curr int, idx int, op *operation, validOps []*operation) bool {
+	if curr > eq.target {
+		return false
+	}
 	if idx == len(eq.operands) {
 		return curr == eq.target
 	}
