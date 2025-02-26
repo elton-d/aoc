@@ -14,9 +14,10 @@ func main() {
 	fmt.Printf("Part 2: %d\n", checksum(compact2(expand(input))))
 }
 
-type freeSpace struct {
+type ListNode struct {
 	idx    int
 	blocks int
+	next   *ListNode
 }
 
 func expand(input string) []string {
@@ -66,7 +67,7 @@ func compact(input []string) []string {
 }
 
 func compact2(input []string) []string {
-	var freeSpaces []freeSpace
+	var head, tail *ListNode
 
 	var k int
 	for k = 0; k < len(input); {
@@ -79,7 +80,14 @@ func compact2(input []string) []string {
 					break
 				}
 			}
-			freeSpaces = append(freeSpaces, freeSpace{idx: start, blocks: end - start + 1})
+			newNode := &ListNode{idx: start, blocks: end - start + 1}
+			if head == nil {
+				head = newNode
+				tail = newNode
+			} else {
+				tail.next = newNode
+				tail = newNode
+			}
 			k = end + 1
 		} else {
 			k++
@@ -105,21 +113,30 @@ func compact2(input []string) []string {
 			}
 
 			fileSize := srcEnd - srcStart + 1
-			for i := 0; i < len(freeSpaces); i++ {
-				if freeSpaces[i].idx >= srcStart {
+			prev := &ListNode{}
+			for node := head; node != nil; node = node.next {
+				if node.idx >= srcStart {
 					break
 				}
-				if freeSpaces[i].blocks >= fileSize {
-					dst := freeSpaces[i].idx
+				if node.blocks >= fileSize {
+					dst := node.idx
 					for j := srcStart; j <= srcEnd; j++ {
 						output[dst] = output[j]
 						output[j] = "."
 						dst++
 					}
-					freeSpaces[i].blocks = freeSpaces[i].blocks - fileSize
-					freeSpaces[i].idx = freeSpaces[i].idx + fileSize
+					node.blocks -= fileSize
+					node.idx += fileSize
+					if node.blocks == 0 {
+						if prev.next == node {
+							prev.next = node.next
+						} else {
+							head = node.next
+						}
+					}
 					break
 				}
+				prev = node
 			}
 			r = srcStart - 1
 		} else {
